@@ -32,7 +32,7 @@ function Profiles() {
           aria-expanded={open ? 'true' : undefined}
         >
           <Avatar
-            sx={{ width: 30, height: 32 }}
+            sx={{ width: 36, height: 36 }}
             alt='Hoang Anh'
             src='https://scontent.fsgn5-10.fna.fbcdn.net/v/t39.30808-1/350937164_995435571824312_2596093544910412396_n.jpg?stp=dst-jpg_p160x160&_nc_cat=106&ccb=1-7&_nc_sid=5740b7&_nc_ohc=eITYndUKMlwAX9QMd0r&_nc_ht=scontent.fsgn5-10.fna&oh=00_AfDRJu4aWYXenRIY83AokLtQ_KGBf3AI6TzZZS3GtuFZsg&oe=65724870'
           />
