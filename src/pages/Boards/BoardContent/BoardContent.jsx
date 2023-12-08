@@ -9,9 +9,18 @@ import {
   MouseSensor,
   TouchSensor,
   useSensor,
-  useSensors
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects
 } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
+import Column from './ListColumns/Column/Column'
+import Card from './ListColumns/Column/ListCards/Card/Card'
+
+const ACTIVE_DRAG_ITEM_TYPE = {
+  COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
+  CARD: 'ACTIVE_DRAG_ITEM_TYPE_CARD'
+}
 
 function BoardContent({ board }) {
 
@@ -29,12 +38,26 @@ function BoardContent({ board }) {
 
   const [orderedColumns, setOrderedColumns] = useState([])
 
+  // Cùng 1 thời điểm chỉ có 1 phần tử đang được kéo (column hoặc card)
+  const [activeDragItemId, setActiveDragItemId] = useState(null)
+  const [activeDragItemType, setActiveDragItemType] = useState(null)
+  const [activeDragItemData, setActiveDragItemData] = useState(null)
+
   useEffect(() => {
     setOrderedColumns(mapOrder(board?.columns, board?.columnOrderIds, '_id'))
   }, [board])
 
+  // Trigger khi bắt đầu kéo 1 phần tử
+  const handleDragStart = (e) => {
+    // console.log('handleDragStart:', e)
+    setActiveDragItemId(e?.active?.id)
+    setActiveDragItemType(e?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_TYPE.CARD : ACTIVE_DRAG_ITEM_TYPE.COLUMN)
+    setActiveDragItemData(e?.active?.data?.current)
+  }
+
+  // Trigger khi thả 1 phần tử
   const handleDragEnd = (e) => {
-    // console.log(e)
+
     const { active, over } = e
 
     // Kiểm tra nếu không tồn tại over( kéo linh tinh ra ngoài thì return luôn tránh lỗi)
@@ -58,10 +81,21 @@ function BoardContent({ board }) {
       // Cập nhật lại state ban đầu sau khi đã kéo thả
       setOrderedColumns(dndOrderedColumns)
     }
+
+    setActiveDragItemId(null)
+    setActiveDragItemType(null)
+    setActiveDragItemData(null)
   }
 
+  // Animation khi thả phần tử - Test bằng cách kéo xong thả trực tiếp và nhìn phần giữ chỗ overlay (vid 32)
+  const customDropAnimation = { sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }
+
   return (
-    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <Box sx={{
         width: '100%',
         height: (theme) => theme.trello.boardContentHeight,
@@ -70,6 +104,11 @@ function BoardContent({ board }) {
         p: '10px 0'
       }}>
         <ListColumns columns={orderedColumns} />
+        <DragOverlay dropAnimation={customDropAnimation}>
+          {(!activeDragItemType) && null}
+          {(activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDragItemData}/>}
+          {(activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD) && <Card card={activeDragItemData}/>}
+        </DragOverlay>
       </Box>
     </DndContext>
   )
